@@ -1,0 +1,2 @@
+B:\Za Qiway Doc\Utama_IF_2017\semester 3\program visual\uas\TokoAZ\TokoAZ\bin\Debug\TokoAZ.exe.config
+D:\Program\C#\UAS\contoh\TokoAZ\TokoAZ\bin\Debug\TokoAZ.exe.config

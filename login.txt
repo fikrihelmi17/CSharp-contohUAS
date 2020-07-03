@@ -1,0 +1,42 @@
+public SqlCommand cmd;
+        public SqlDataReader reader;
+
+        ConnectionDB connDb = new ConnectionDB();
+
+        public FormLogin()
+        {
+            InitializeComponent();
+        }
+
+        private void btnLogin_Click(object sender, EventArgs e)
+        {
+            connDb.koneksi();
+
+            try
+            {
+                string username = txtUsername.Text.Trim();
+                string password = txtPassword.Text.Trim();
+
+                string query = "SELECT * FROM TUser WHERE nama_user='" + username + "' and password='" + password + "'";
+                cmd = new SqlCommand(query, connDb.conn);
+                reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    FormDashboard objFormDashboard = new FormDashboard();
+                    this.Hide();
+                    objFormDashboard.Show();
+                }
+                else
+                {
+                    MessageBox.Show("Check your username and password");
+                }
+            }
+            finally
+            {
+                if (reader != null)
+                {
+                    reader.Close();
+                }
+            }
+        }

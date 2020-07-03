@@ -1,0 +1,271 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+namespace UAS_0617104008_Syahrul_Nanda_Syafrizal
+{
+	public partial class Penjualan : Form
+	{
+		public SqlCommand cmd;
+		public SqlDataReader reader;
+		int i = 0;
+		int no = 1;
+		int jumlah, harga, subTotal, pajak, totalBayar, sisa, fakturNo;
+		int total = 0;
+		string fakturDB, no_faktur;
+
+		KonektorDB Konektor = new KonektorDB();
+
+		void createNoFaktur()
+		{
+			Konektor.koneksi();
+			DateTime now = DateTime.Now;
+			string finalMonth, finalYear;
+
+			if (now.Month > 9)
+			{
+				finalMonth = Convert.ToString(now.Month);
+			}
+			else
+			{
+				finalMonth = "0" + Convert.ToString(now.Month);
+			}
+
+			try
+			{
+				string query = "SELECT TOP 1 no_faktur FROM THead_Penjualan ORDER BY no_faktur DESC";
+
+				cmd = new SqlCommand(query, Konektor.conn);
+				reader = cmd.ExecuteReader();
+
+				if (reader.Read())
+				{
+					fakturDB = Convert.ToString(reader[0]);
+					fakturNo = Convert.ToInt32(fakturDB.Substring(6));
+					fakturNo = fakturNo + 1;
+					MessageBox.Show(Convert.ToString(fakturNo));
+					if (fakturNo > 9)
+					{
+						no_faktur = "00" + Convert.ToString(fakturNo);
+					}
+					else if (fakturNo > 99)
+					{
+						no_faktur = "0" + Convert.ToString(fakturNo);
+					}
+					else if (fakturNo > 999)
+					{
+						no_faktur = Convert.ToString(fakturNo);
+					}
+					else
+					{
+						no_faktur = "000" + Convert.ToString(fakturNo);
+					}
+				}
+				else
+				{
+					no_faktur = "0001";
+				}
+			}
+			finally
+			{
+				if (reader != null)
+				{
+					reader.Close();
+				}
+
+			}
+
+			finalYear = now.ToString("yy");
+
+			txtFaktur.Text = "FJ" + finalMonth + finalYear + no_faktur;
+		}
+		void isiComboID()
+		{
+			Konektor.koneksi();
+
+			try
+			{
+				string sql = "SELECT id_customer FROM TCustomer";
+
+
+				cmd = new SqlCommand(sql, Konektor.conn);
+
+				reader = cmd.ExecuteReader();
+
+				while (reader.Read())
+				{
+					cmbID.Items.Add(reader[0]);
+
+				}
+				
+			}
+			finally
+			{
+				if (reader != null)
+				{
+					reader.Close();
+				}
+				
+			}
+		}
+		void isiComboKode()
+		{
+			Konektor.koneksi();
+
+			try
+			{
+				string sql = "SELECT kode_barang FROM TBarang";
+
+
+				cmd = new SqlCommand(sql, Konektor.conn);
+
+				reader = cmd.ExecuteReader();
+
+				while (reader.Read())
+				{
+					cmbKode.Items.Add(reader[0]);
+
+				}
+
+			}
+			finally
+			{
+				if (reader != null)
+				{
+					reader.Close();
+				}
+
+			}
+		}
+
+		private void button1_Click(object sender, EventArgs e)
+		{
+			this.Close(); MasterPenjualan FormMaster = new MasterPenjualan();
+			this.Hide();
+			FormMaster.Show();
+		}
+
+		private void btnSimpan_Click(object sender, EventArgs e)
+		{
+
+		}
+
+		private void txtJumlahBayar_TextChanged_1(object sender, EventArgs e)
+		{
+			sisa = Convert.ToInt32(txtJumlahBayar.Text) - totalBayar;
+			txtKembali.Text = Convert.ToString(sisa);
+		}
+
+		public Penjualan()
+		{
+			InitializeComponent();
+			isiComboID();
+			isiComboKode();
+			createNoFaktur();
+		}
+
+
+		private void cmbID_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			Konektor.koneksi();
+
+			try
+			{
+				string sql = "SELECT * FROM TCustomer WHERE id_customer = '" + cmbID.Text + "'";
+
+				cmd = new SqlCommand(sql, Konektor.conn);
+
+				reader = cmd.ExecuteReader();
+
+				if (reader.Read())
+				{
+					txtNama.Text = reader[1].ToString();
+					rchAlamat.Text = reader[2].ToString();
+					txtNomer.Text = reader[3].ToString();
+				}
+			}
+			finally
+			{
+				if (reader != null)
+				{
+					reader.Close();
+				}
+				
+			}
+		}
+
+		private void cmbKode_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			Konektor.koneksi();
+
+			try
+			{
+				string sql = "SELECT * FROM TBarang WHERE kode_barang = '" + cmbKode.Text + "'";
+
+				cmd = new SqlCommand(sql, Konektor.conn);
+
+				reader = cmd.ExecuteReader();
+
+				if (reader.Read())
+				{
+					txtNamabrg.Text = reader[1].ToString();
+					txtSatuan.Text = reader[2].ToString();
+					txtHarga.Text = reader[4].ToString();
+				}
+			}
+			finally
+			{
+				if (reader != null)
+				{
+					reader.Close();
+				}
+
+			}
+		}
+
+		private void Penjualan_Load(object sender, EventArgs e)
+		{
+
+		}
+
+		private void btnPlus_Click(object sender, EventArgs e)
+		{
+			
+			jumlah = Convert.ToInt32(txtJumlah.Text);
+			harga = Convert.ToInt32(txtHarga.Text);
+			subTotal = jumlah * harga;
+
+			grdView.Rows.Add();
+			grdView.Rows[i].Cells[0].Value = no;
+			grdView.Rows[i].Cells[1].Value = cmbKode.Text;
+			grdView.Rows[i].Cells[2].Value = txtNamabrg.Text;
+			grdView.Rows[i].Cells[3].Value = txtSatuan.Text;
+			grdView.Rows[i].Cells[4].Value = txtHarga.Text;
+			grdView.Rows[i].Cells[5].Value = jumlah;
+			grdView.Rows[i].Cells[6].Value = subTotal;
+
+			no++;
+			i++;
+
+			total = total + subTotal;
+			pajak = total / 10;
+			totalBayar = total + pajak;
+
+			txtTotal.Text = Convert.ToString(total);
+			txtPajak.Text = Convert.ToString(pajak);
+			txtTotalBayar.Text = Convert.ToString(totalBayar);
+		}
+
+		private void grdView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+		{
+			
+		}
+	}
+}
